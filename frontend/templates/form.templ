@@ -1,0 +1,9 @@
+package templates
+
+templ Form() {
+	<form hx-post="" method="POST" hx-target="">
+    <input id="csrf" name="_csrf" type="hidden" value={GetCsrf(ctx)}/>
+    { children... }
+    <button class="btn btn-primary">primary</button>
+</form>
+}

@@ -1,39 +1,72 @@
 package server
 
 import (
-	"fmt"
+	"context"
+	"gotvup/frontend/templates"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
 
-	_ "github.com/joho/godotenv/autoload"
-
-	"my-saas/internal/database"
+	"github.com/a-h/templ"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-type Server struct {
-	port int
-
-	db database.Service
+type CustomContext struct {
+	echo.Context
 }
 
-func NewServer() *http.Server {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	NewServer := &Server{
-		port: port,
+func (c CustomContext) Get(key string) interface{} {
+	// grab value from echo.Context
+	val := c.Context.Get(key)
+	// if it's not nil, return it
+	if val != nil {
+		return val
+	}
+	// otherwise, return Request.Context
+	return c.Request().Context().Value(key)
+}
 
-		db: database.New(),
+func buildContext(c echo.Context) context.Context {
+	csrf := c.Get(middleware.DefaultCSRFConfig.ContextKey)
+	return context.WithValue(c.Request().Context(), templates.CsrfContextKey, csrf)
+}
+
+func RenderError(c echo.Context, status int, err error) error {
+	return Render(c, status, templates.Error(err))
+}
+
+func RenderWithinBase(c echo.Context, status int, t templ.Component) error {
+	buf := templ.GetBuffer()
+	defer templ.ReleaseBuffer(buf)
+	newContext := buildContext(c)
+	html, err := templ.ToGoHTML(newContext, t)
+	if err != nil {
+		return RenderError(c, http.StatusInternalServerError, err)
+	}
+	err = templates.Base.Execute(buf, templates.BaseContent{
+		Main: html,
+	})
+	if err != nil {
+		return RenderError(c, http.StatusInternalServerError, err)
+	}
+	return c.HTML(status, buf.String())
+}
+
+func Render(c echo.Context, status int, t templ.Component) error {
+	buf := templ.GetBuffer()
+	defer templ.ReleaseBuffer(buf)
+	newContext := buildContext(c)
+	if err := t.Render(newContext, buf); err != nil {
+		return err
 	}
 
-	// Declare Server config
-	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	}
+	return c.HTML(status, buf.String())
+}
 
-	return server
+func CustomHTTPErrorHandler(err error, c echo.Context) {
+	code := http.StatusInternalServerError
+	if he, ok := err.(*echo.HTTPError); ok {
+		code = he.Code
+	}
+	c.Logger().Error(err)
+	RenderError(c, code, err)
 }

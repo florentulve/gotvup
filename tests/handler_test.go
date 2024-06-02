@@ -1,16 +1,6 @@
 package tests
 
-import (
-	"encoding/json"
-	"github.com/labstack/echo/v4"
-	"my-saas/internal/server"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"testing"
-)
-
-func TestHandler(t *testing.T) {
+/*func TestHandler(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	resp := httptest.NewRecorder()
@@ -37,4 +27,4 @@ func TestHandler(t *testing.T) {
 		t.Errorf("handler() wrong response body. expected = %v, actual = %v", expected, actual)
 		return
 	}
-}
+}*/

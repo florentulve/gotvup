@@ -27,3 +27,11 @@ tmp/
 
 # Project build
 main
+
+# templ
+*_templ.go
+
+
+node_modules/
+
+frontend/assets/dist

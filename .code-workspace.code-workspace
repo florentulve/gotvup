@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "frontend"
+		}
+	],
+	"settings": {
+		"tailwindCSS.includeLanguages": {
+			"templ": "html"
+		},
+		"emmet.includeLanguages": {
+			"templ": "html"
+		},
+		"[templ]": {
+			"editor.defaultFormatter": "a-h.templ"
+		},
+	}
+}

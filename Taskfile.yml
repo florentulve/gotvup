@@ -1,0 +1,26 @@
+version: '3'
+
+tasks:
+  build:
+    deps: [frontend-build]
+    cmds:
+      - echo "Building..."
+      - templ generate
+      - go build -o main cmd/main.go
+    silent: true
+  frontend-install:
+    dir: ./frontend
+    cmds:
+      - npm i
+  frontend-build:
+    deps: [frontend-install]
+    dir: ./frontend
+    cmds:
+      - npx vite build
+  run:
+    deps: [build]
+    cmds:
+      - go run cmd/main.go
+  watch:
+    cmds:
+      - air
